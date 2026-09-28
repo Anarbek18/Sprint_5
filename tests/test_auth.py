@@ -62,10 +62,12 @@ def fill_login(driver, email, password):
     driver.find_element(*PASSWORD_INPUT).send_keys(password)
 
 
-def test_registration_success(driver, base_url):
-    unique_email = f"autotest_{int(time.time() * 1000)}@example.com"
 
-    try:
+class TestAuth:
+
+    def test_registration_success(driver, base_url):
+        unique_email = f"autotest_{int(time.time() * 1000)}@example.com"
+
         open_registration(driver, base_url)
         fill_registration(driver, unique_email)
         wait_click(driver, REGISTER_SUBMIT)
@@ -78,12 +80,8 @@ def test_registration_success(driver, base_url):
         assert driver.current_url.startswith(base_url.rstrip("/") + "/regiatration")
         assert driver.find_element(*USER_NAME).text.strip() == "User."
         assert driver.find_element(*USER_AVATAR).is_displayed()
-    finally:
-        driver.quit()
 
-
-def test_registration_invalid_email(driver, base_url):
-    try:
+    def test_registration_invalid_email(driver, base_url):
         open_registration(driver, base_url)
 
         driver.find_element(*EMAIL_INPUT).send_keys("invalid-email")
@@ -105,18 +103,14 @@ def test_registration_invalid_email(driver, base_url):
                 or "rgba(255, 0, 0" in box_shadow
                 or "#ff" in box_shadow.lower()
             ), f"Поле {field_name} не выделено красным: border={border_color}, shadow={box_shadow}"
-    finally:
-        driver.quit()
 
+    def test_registration_existing_user(driver, base_url):
+        email = os.getenv("TEST_USER_EMAIL")
+        password = os.getenv("TEST_USER_PASSWORD")
 
-def test_registration_existing_user(driver, base_url):
-    email = os.getenv("TEST_USER_EMAIL")
-    password = os.getenv("TEST_USER_PASSWORD")
+        if not email or not password or password == "CHANGE_ME":
+            pytest.skip("Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env")
 
-    if not email or not password or password == "CHANGE_ME":
-        pytest.skip("Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env")
-
-    try:
         open_registration(driver, base_url)
         fill_registration(driver, email, password)
         wait_click(driver, REGISTER_SUBMIT)
@@ -124,18 +118,14 @@ def test_registration_existing_user(driver, base_url):
         assert wait_visible(driver, ERROR_TEXT).is_displayed()
         for locator in (EMAIL_INPUT, PASSWORD_INPUT, CONFIRM_PASSWORD_INPUT):
             assert wait_visible(driver, locator).is_displayed()
-    finally:
-        driver.quit()
 
+    def test_login(driver, base_url):
+        email = os.getenv("TEST_USER_EMAIL")
+        password = os.getenv("TEST_USER_PASSWORD")
 
-def test_login(driver, base_url):
-    email = os.getenv("TEST_USER_EMAIL")
-    password = os.getenv("TEST_USER_PASSWORD")
+        if not email or not password or password == "CHANGE_ME":
+            pytest.skip("Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env")
 
-    if not email or not password or password == "CHANGE_ME":
-        pytest.skip("Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env")
-
-    try:
         open_login(driver, base_url)
         fill_login(driver, email, password)
         wait_click(driver, LOGIN_SUBMIT)
@@ -148,18 +138,14 @@ def test_login(driver, base_url):
         assert driver.current_url.startswith(base_url.rstrip("/") + "/regiatration")
         assert driver.find_element(*USER_NAME).text.strip() == "User."
         assert driver.find_element(*USER_AVATAR).is_displayed()
-    finally:
-        driver.quit()
 
+    def test_logout(driver, base_url):
+        email = os.getenv("TEST_USER_EMAIL")
+        password = os.getenv("TEST_USER_PASSWORD")
 
-def test_logout(driver, base_url):
-    email = os.getenv("TEST_USER_EMAIL")
-    password = os.getenv("TEST_USER_PASSWORD")
+        if not email or not password or password == "CHANGE_ME":
+            pytest.skip("Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env")
 
-    if not email or not password or password == "CHANGE_ME":
-        pytest.skip("Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env")
-
-    try:
         open_login(driver, base_url)
         fill_login(driver, email, password)
         wait_click(driver, LOGIN_SUBMIT)
@@ -172,5 +158,3 @@ def test_logout(driver, base_url):
         assert driver.find_element(*LOGIN_REGISTER_BUTTON).is_displayed()
         assert not driver.find_elements(*USER_NAME)
         assert not driver.find_elements(*USER_AVATAR)
-    finally:
-        driver.quit()

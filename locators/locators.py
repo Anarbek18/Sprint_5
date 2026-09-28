@@ -92,3 +92,17 @@ def invalid_field_container(field_name):
         By.XPATH,
         f"//input[@name='{field_name}']/ancestor::div[contains(@class,'input_inputDefault')][1]"
     )
+
+# Dynamic locators
+UNAUTHORIZED_MODAL_HEADING = (
+    By.XPATH,
+    "//*[normalize-space()='Чтобы разместить объявление, авторизуйтесь']"
+)
+
+
+def ad_title(text: str):
+    return (
+        By.XPATH,
+        f"//*[normalize-space()='{text}']"
+    )
+

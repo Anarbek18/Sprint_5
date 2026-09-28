@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -20,6 +19,8 @@ from locators.locators import (
     PUBLISH_BUTTON,
     MY_ADS_HEADING,
     USER_NAME,
+    UNAUTHORIZED_MODAL_HEADING,
+    ad_title,
     dropdown_option,
 )
 
@@ -59,24 +60,19 @@ def select_dropdown(driver, input_locator, option_text):
     wait_click(driver, dropdown_option(option_text))
 
 
-def test_create_ad_unauthorized(driver, base_url):
-    try:
+class TestAds:
+
+    def test_create_ad_unauthorized(self, driver, base_url):
         driver.get(base_url)
         wait_click(driver, POST_AD_BUTTON)
 
-        modal_heading = (
-            By.XPATH,
-            "//*[normalize-space()='Чтобы разместить объявление, авторизуйтесь']"
-        )
-        assert wait_visible(driver, modal_heading).is_displayed()
-    finally:
-        driver.quit()
+        assert wait_visible(
+            driver, UNAUTHORIZED_MODAL_HEADING
+        ).is_displayed()
 
+    def test_create_ad_authorized(self, driver, base_url):
+        title = "Автотестовое объявление Selenium"
 
-def test_create_ad_authorized(driver, base_url):
-    title = "Автотестовое объявление Selenium"
-
-    try:
         login(driver, base_url)
         wait_click(driver, POST_AD_BUTTON)
 
@@ -86,7 +82,6 @@ def test_create_ad_authorized(driver, base_url):
         )
         wait_visible(driver, AD_PRICE_INPUT).send_keys("15000")
 
-        # Значения присутствуют в HTML, переданном вместе с заданием.
         select_dropdown(driver, AD_CATEGORY_INPUT, "Технологии")
         select_dropdown(driver, AD_CITY_INPUT, "Москва")
 
@@ -97,14 +92,7 @@ def test_create_ad_authorized(driver, base_url):
 
         wait_click(driver, PUBLISH_BUTTON)
 
-        # Переход в профиль: на учебном сервисе имя пользователя находится в header.
         wait_click(driver, USER_NAME)
         wait_visible(driver, MY_ADS_HEADING)
 
-        title_locator = (
-            By.XPATH,
-            f"//*[normalize-space()='{title}']"
-        )
-        assert wait_visible(driver, title_locator).is_displayed()
-    finally:
-        driver.quit()
+        assert wait_visible(driver, ad_title(title)).is_displayed()
